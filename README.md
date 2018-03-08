@@ -23,6 +23,6 @@ Obs.erve.me
 Type: item, Value: itemID (seperated by commas)<br>
 Type: xp, Value: Amount of xp<br>
 Type: group, Value: Name of permission group<br>
-Type: slot, Value: Item limit<br>
-Type: uconomy, Value: Amount of currency<br>
+Type: slot, Value: Item limit (Must have CustomKits installed)<br>
+Type: uconomy, Value: Amount of currency (Must have Uconomy installed)<br>
 ...and more soon to come...
