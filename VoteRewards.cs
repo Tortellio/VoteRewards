@@ -16,6 +16,68 @@ namespace Teyhota.VoteRewards
 {
     public class VoteRewards
     {
+        public class Result
+        {
+            public string service;
+            public string result;
+
+            public Result(string service, string result)
+            {
+                this.service = service;
+                this.result = result;
+            }
+        }
+
+        public static Result GetVote(UnturnedPlayer player)
+        {
+            WebClient wc = new WebClient();
+            string result = null;
+
+            foreach (var service in Plugin.VoteRewardsPlugin.Instance.Configuration.Instance.Services)
+            {
+                if (service.APIKey.Length == 0)
+                {
+                    Logger.LogError("You need to setup API key(s) in your Config file.");
+                    break;
+                }
+
+                string url = "";
+
+                if (service.Name.Contains("unturned-servers"))
+                {
+                    url = "https://unturned-servers.net/api/?object=votes&element=claim&key={0}&steamid={1}";
+                }
+                else if (service.Name.Contains("unturnedsl"))
+                {
+                    url = "http://unturnedsl.com/api/dedicated/{0}/{1}";
+                }
+                else if (service.Name.Contains("obs.erve.me") || service.Name.Contains("observatory"))
+                {
+                    url = "http://api.observatory.rocketmod.net/?server={0}&steamid={1}";
+                }
+
+                try
+                {
+                    result = wc.DownloadString(string.Format(url, service.APIKey, player.CSteamID.m_SteamID));
+
+                    if (result.Length > 1 || result.Length < 1)
+                    {
+                        Logger.LogError("an error has occurred, please report it!");
+                        break;
+                    }
+
+                    return new Result(service.Name, result);
+                }
+                catch (WebException)
+                {
+                    Logger.LogError("Could not connect to API");
+                    break;
+                }
+            }
+
+            return null;
+        }
+
         public static void SetVote(UnturnedPlayer player)
         {
             WebClient wc = new WebClient();
@@ -45,13 +107,13 @@ namespace Teyhota.VoteRewards
                     if (result.Length > 1 || result.Length < 1)
                     {
                         Logger.LogError("an error has occurred, please report it!");
-                        return;
+                        break;
                     }
                 }
                 catch (WebException)
                 {
                     Logger.LogError("Could not connect to API");
-                    return;
+                    break;
                 }
             }
 
@@ -67,60 +129,19 @@ namespace Teyhota.VoteRewards
 
         public static void HandleVote(UnturnedPlayer player)
         {
-            WebClient wc = new WebClient();
-            string result = null;
+            Result voteResult = GetVote(player);
 
-            foreach (var service in Plugin.VoteRewardsPlugin.Instance.Configuration.Instance.Services)
-            {
-                if (service.APIKey.Length == 0)
-                {
-                    Logger.LogError("You need to setup API key(s) in your Config file.");
-                    return;
-                }
-
-                string url = "";
-
-                if (service.Name.Contains("unturned-servers"))
-                {
-                    url = "https://unturned-servers.net/api/?object=votes&element=claim&key={0}&steamid={1}";
-                }
-                else if (service.Name.Contains("unturnedsl"))
-                {
-                    url = "http://unturnedsl.com/api/dedicated/{0}/{1}";
-                }
-                else if (service.Name.Contains("obs.erve.me") || service.Name.Contains("observatory"))
-                {
-                    url = "http://api.observatory.rocketmod.net/?server={0}&steamid={1}";
-                }
-                
-                try
-                {
-                    result = wc.DownloadString(string.Format(url, service.APIKey, player.CSteamID.m_SteamID));
-
-                    if (result.Length > 1 || result.Length < 1)
-                    {
-                        Logger.LogError("an error has occurred, please report it!");
-                        return;
-                    }
-                }
-                catch (WebException)
-                {
-                    Logger.LogError("Could not connect to API");
-                    return;
-                }
-            }
-
-            switch (result)
+            switch (voteResult.result)
             {
                 case "0": // Hasn't voted
-                    UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("not_yet_voted"), Color.red);
+                    UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("not_yet_voted", voteResult.service), Color.red);
                     break;
                 case "1": // Has voted
-                    GiveReward(player);
+                    GiveReward(player, voteResult.service);
                     SetVote(player);
                     break;
                 case "2": // Has voted & claimed
-                    UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("already_voted"), Color.red);
+                    UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("already_voted", voteResult.service), Color.red);
                     break;
             }
         }
@@ -130,7 +151,7 @@ namespace Teyhota.VoteRewards
             player.Inventory.tryAddItem(item, true, true);
         }
 
-        public static void GiveReward(UnturnedPlayer player)
+        public static void GiveReward(UnturnedPlayer player, string serviceName = null)
         {
             int sum = Plugin.VoteRewardsPlugin.Instance.Configuration.Instance.Rewards.Sum(p => p.Chance);
             string selectedElement = null;
@@ -216,6 +237,11 @@ namespace Teyhota.VoteRewards
                         });
                     }
                     break;
+            }
+
+            if (Plugin.VoteRewardsPlugin.Instance.Configuration.Instance.GlobalAnnouncement)
+            {
+                UnturnedChat.Say(Plugin.VoteRewardsPlugin.Instance.Translate("broadcast_reward", player.CharacterName, serviceName));
             }
         }
     }

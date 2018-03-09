@@ -3,6 +3,9 @@ using System.IO;
 using System.Net;
 using System.Xml;
 using Rocket.Core.Plugins;
+using Rocket.Unturned.Player;
+using Rocket.Unturned.Chat;
+using Rocket.Unturned;
 using Rocket.API.Collections;
 using Logger = Rocket.Core.Logging.Logger;
 
@@ -12,7 +15,7 @@ namespace Teyhota.VoteRewards.Plugin
     {
         public static string PluginName = "VoteRewards";
         public static string PluginVersion = "3.0.0";
-        public static string BuildVersion = "12";
+        public static string BuildVersion = "16";
         public static string RocketVersion = "4.9.3.0";
         public static string UnturnedVersion = "3.23.5.0";
         public static string ThisDirectory = System.IO.Directory.GetCurrentDirectory() + @"\Plugins\VoteRewards\";
@@ -124,8 +127,9 @@ namespace Teyhota.VoteRewards.Plugin
         protected override void Load()
         {
             Instance = this;
-            
-            Write("\n" + PluginName + " " + PluginVersion + " BETA-" + BuildVersion, ConsoleColor.Cyan);
+            U.Events.OnPlayerConnected += OnPlayerConnected;
+
+            Write("\n" + PluginName + " " + PluginVersion, ConsoleColor.Cyan);
             Write("Made by Teyhota", ConsoleColor.Cyan);
             Write("for Rocket " + RocketVersion + "\n", ConsoleColor.Cyan);
 
@@ -139,7 +143,7 @@ namespace Teyhota.VoteRewards.Plugin
             if (File.Exists(System.IO.Directory.GetCurrentDirectory() + @"\Plugins\CustomKits.dll"))
             {
                 CustomKits = true;
-                Write("Optional dependency CustomKits has been detected", ConsoleColor.Green);
+                Logger.Log("Optional dependency CustomKits has been detected\n", ConsoleColor.Gray);
             }
             else
             {
@@ -149,16 +153,30 @@ namespace Teyhota.VoteRewards.Plugin
             if (File.Exists(System.IO.Directory.GetCurrentDirectory() + @"\Plugins\Uconomy.dll"))
             {
                 Uconomy = true;
-                Write("Optional dependency Uconomy has been detected", ConsoleColor.Green);
+                Logger.Log("Optional dependency Uconomy has been detected\n", ConsoleColor.Gray);
             }
             else
             {
                 Uconomy = false;
             }
         }
+        
+        private void OnPlayerConnected(UnturnedPlayer player)
+        {
+            VoteRewards.Result voteResult = VoteRewards.GetVote(player);
+            
+            switch (voteResult.result)
+            {
+                case "1": // Has voted & not claimed
+                    UnturnedChat.Say(player, Translate("pending_reward", voteResult.service));
+                    break;
+            }
+        }
 
         protected override void Unload()
         {
+            U.Events.OnPlayerConnected -= OnPlayerConnected;
+
             Write("Visit Plugins.4Unturned.tk for more!", ConsoleColor.Green);
         }
 
@@ -168,11 +186,13 @@ namespace Teyhota.VoteRewards.Plugin
             {
                 return new TranslationList()
                 {
-                    {"vote_page_msg", "Vote for {0} and receive a reward!"},
-                    {"already_voted", "You have already voted in the last 24 hours."},
-                    {"not_yet_voted", "You have not voted yet. Type /vote"},
+                    {"vote_page_msg", "Vote for {0} and receive a random reward!"},
+                    {"already_voted", "You have already voted on {0} in the last 24 hours."},
+                    {"not_yet_voted", "You have not yet voted for this server on {0}. Type /vote"},
+                    {"pending_reward", "You have a pending reward for your vote on {0}! Type /reward"},
                     {"free_reward", "You gave {0} a free reward!"},
-                    {"reward", "You've been rewarded {0}. Thanks for voting!"}
+                    {"reward", "You've been rewarded {0}. Thanks for voting!"},
+                    {"broadcast_reward", "{0} voted on {1} and has received a reward! Vote now!"}
                 };
             }
         }

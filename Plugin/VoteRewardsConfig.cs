@@ -10,6 +10,7 @@ namespace Teyhota.VoteRewards.Plugin
 
         public string DisableAutoUpdate;
         public string VotePageURL;
+        public bool GlobalAnnouncement;
         public List<Reward> Rewards;
         public List<Service> Services;
 
@@ -51,6 +52,7 @@ namespace Teyhota.VoteRewards.Plugin
         {
             Instance = this;
             VotePageURL = "https://unturned-servers.net/my_server_vote_page";
+            GlobalAnnouncement = true;
             Rewards = new List<Reward>()
             {
                 new Reward("item", "235,236,237,238,253,1369,1371,1371,297,298,298,298,15,15,15,15,15", 40),
