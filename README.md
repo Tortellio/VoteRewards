@@ -1,4 +1,4 @@
-# VoteRewards
+# VoteRewards for Unturned 3.0
 
 Receive rewards for voting on Unturned-Servers.net or UnturnedSL.com<br>
 Rewards can include Kits, Items, XP, Permission groups, Uconomy currency*, or CustomKits slots*<br>
