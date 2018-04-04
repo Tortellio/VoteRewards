@@ -7,7 +7,7 @@ Easy to configure
 ### Commands:
 /vote - Takes you to webpage to vote for server<br>
 /reward - Claim reward after voting for server<br>
-/reward - Force-give a reward to a player
+/reward <player> - Force-give a reward to a player if you have corresponding permission
 
 ### Permissions:
 voterewards.vote<br>
