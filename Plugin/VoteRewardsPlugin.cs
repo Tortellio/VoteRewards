@@ -14,7 +14,7 @@ namespace Teyhota.VoteRewards.Plugin
     {
         public static string PluginName = "VoteRewards";
         public static string PluginVersion = "3.0.1";
-        public static string BuildVersion = "38";
+        public static string BuildVersion = "40";
         public static string RocketVersion = "4.9.3.0";
         public static string UnturnedVersion = "3.23.8.0";
         public static string ThisDirectory = System.IO.Directory.GetCurrentDirectory() + @"\Plugins\VoteRewards\";

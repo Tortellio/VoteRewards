@@ -4,6 +4,7 @@ using Rocket.Unturned.Player;
 using Rocket.Unturned.Chat;
 using Rocket.API;
 using SDG.Unturned;
+using Steamworks;
 
 namespace Teyhota.VoteRewards.Commands
 {
@@ -26,11 +27,11 @@ namespace Teyhota.VoteRewards.Commands
             UnturnedPlayer player = (UnturnedPlayer)caller;
             string url = Plugin.VoteRewardsPlugin.Instance.Configuration.Instance.VotePageURL;
 
-            if (command.Length == 0)
+            try
             {
-                player.Player.askBrowserRequest(player.CSteamID, Plugin.VoteRewardsPlugin.Instance.Translate("vote_page_msg", Provider.serverName), url);
+                SteamFriends.ActivateGameOverlayToWebPage(url);
             }
-            else
+            catch
             {
                 UnturnedChat.Say(caller, Plugin.VoteRewardsPlugin.Instance.Translate("vote_page_msg", Provider.serverName));
                 Process.Start(url);

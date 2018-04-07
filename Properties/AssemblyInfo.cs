@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("VoteRewards")]
@@ -13,3 +14,4 @@ using System.Runtime.InteropServices;
 [assembly: Guid("e62d7463-577c-418a-90bd-ec9f9fec4077")]
 [assembly: AssemblyVersion("3.0.1.0")]
 [assembly: AssemblyFileVersion("3.0.1.0")]
+[assembly: InternalsVisibleTo("Assembly-CSharp-firstpass")]
