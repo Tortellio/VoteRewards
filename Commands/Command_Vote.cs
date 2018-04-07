@@ -24,18 +24,16 @@ namespace Teyhota.VoteRewards.Commands
         public void Execute(IRocketPlayer caller, string[] command)
         {
             UnturnedPlayer player = (UnturnedPlayer)caller;
-            
+            string url = Plugin.VoteRewardsPlugin.Instance.Configuration.Instance.VotePageURL;
+
             if (command.Length == 0)
             {
-                player.Player.askBrowserRequest(player.CSteamID, Plugin.VoteRewardsPlugin.Instance.Translate("vote_page_msg", Provider.serverName), Plugin.VoteRewardsPlugin.Instance.Configuration.Instance.VotePageURL);
+                player.Player.askBrowserRequest(player.CSteamID, Plugin.VoteRewardsPlugin.Instance.Translate("vote_page_msg", Provider.serverName), url);
             }
             else
             {
-                if (command[0] == "force")
-                {
-                    UnturnedChat.Say(caller, Plugin.VoteRewardsPlugin.Instance.Translate("vote_page_msg", Provider.serverName));
-                    Process.Start(Plugin.VoteRewardsPlugin.Instance.Configuration.Instance.VotePageURL);
-                }
+                UnturnedChat.Say(caller, Plugin.VoteRewardsPlugin.Instance.Translate("vote_page_msg", Provider.serverName));
+                Process.Start(url);
             }
         }
     }

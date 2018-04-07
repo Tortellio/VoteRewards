@@ -16,142 +16,195 @@ namespace Teyhota.VoteRewards
 {
     public class VoteRewards
     {
-        public class Result
-        {
-            public string service;
-            public string result;
-
-            public Result(string service, string result)
-            {
-                this.service = service;
-                this.result = result;
-            }
-        }
-
-        public static Result GetVote(UnturnedPlayer player)
+        public static string GetVote(UnturnedPlayer player, Plugin.VoteRewardsConfig.Service service, string url)
         {
             WebClient wc = new WebClient();
             string result = null;
 
-            foreach (var service in Plugin.VoteRewardsPlugin.Instance.Configuration.Instance.Services)
+            if (service.APIKey == null)
             {
-                if (service.APIKey.Length == 0)
-                {
-                    Logger.LogError("You need to setup API key(s) in your Config file.");
-                    break;
-                }
-
-                string url = "";
-
-                if (service.Name.Contains("unturned-servers"))
-                {
-                    url = "https://unturned-servers.net/api/?object=votes&element=claim&key={0}&steamid={1}";
-                }
-                else if (service.Name.Contains("unturnedsl"))
-                {
-                    url = "http://unturnedsl.com/api/dedicated/{0}/{1}";
-                }
-                else if (service.Name.Contains("obs.erve.me") || service.Name.Contains("observatory"))
-                {
-                    url = "http://api.observatory.rocketmod.net/?server={0}&steamid={1}";
-                }
-
-                try
-                {
-                    result = wc.DownloadString(string.Format(url, service.APIKey, player.CSteamID.m_SteamID));
-
-                    if (result.Length > 1 || result.Length < 1)
-                    {
-                        Logger.LogError("an error has occurred, please report it!");
-                        break;
-                    }
-
-                    return new Result(service.Name, result);
-                }
-                catch (WebException)
-                {
-                    Logger.LogError("Could not connect to API");
-                    break;
-                }
+                return null;
             }
 
-            return null;
+            try
+            {
+                result = wc.DownloadString(string.Format(url, service.APIKey, player.CSteamID.m_SteamID));
+            }
+            catch (WebException)
+            {
+                Logger.LogError(string.Format("\nVoteRewards >> Could not connect to {0}'s API\n", service.Name));
+
+                return null;
+            }
+
+            
+            if (result.Length != 1)
+            {
+                if (result == "Error: invalid server key")
+                {
+                    Logger.LogError("\nVoteRewards >> API key is invalid\n");
+                }
+                else if (result == "Error: no server key")
+                {
+                    Logger.LogError("\nVoteRewards >> API key not found\n");
+                }
+                else
+                {
+                    Logger.LogError(string.Format("\nVoteRewards >> {0}'s API cannot be used with this plugin\n", service.Name));
+                }
+
+                return null;
+            }
+
+            return result;
         }
 
-        public static void SetVote(UnturnedPlayer player)
+        public static bool SetVote(UnturnedPlayer player, Plugin.VoteRewardsConfig.Service service)
         {
             WebClient wc = new WebClient();
             string result = null;
+            string url = null;
 
+            if (service.Name == "unturned-servers")
+            {
+                url = "http://unturned-servers.net/api/?action=post&object=votes&element=claim&key={0}&steamid={1}";
+            }
+            else if (service.Name == "unturnedsl")
+            {
+                url = "http://unturnedsl.com/api/dedicated/post/{0}/{1}";
+            }
+            else if (service.Name == "obs.erve.me" || service.Name == "observatory")
+            {
+                url = "http://api.observatory.rocketmod.net/?server={0}&steamid={1}&claim";
+            }
+
+            if (service.APIKey == null || url == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                result = wc.DownloadString(string.Format(url, service.APIKey, player.CSteamID.m_SteamID));
+            }
+            catch (WebException)
+            {
+                Logger.LogError(string.Format("\nVoteRewards >> Could not connect to {0}'s API\n", service.Name));
+
+                return false;
+            }
+
+            if (result.Length != 1)
+            {
+                Logger.LogError(string.Format("\nVoteRewards >> {0}'s API cannot be used with this plugin\n", service.Name));
+
+                return false;
+            }
+
+            if (result == "0") // Not claimed
+            {
+                return false;
+            }
+            else if (result == "1") // Claimed
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static void HandleVote(UnturnedPlayer player, bool giveReward)
+        {
+            string voteResult = null;
+            string serviceName = null;
+            var s = new Plugin.VoteRewardsConfig.Service("","");
+            
             foreach (var service in Plugin.VoteRewardsPlugin.Instance.Configuration.Instance.Services)
             {
-                string url = "";
+                if (service.Name == "unturned-servers")
+                {
+                    s = new Plugin.VoteRewardsConfig.Service(service.Name, service.APIKey);
+                    voteResult = GetVote(player, s, "http://unturned-servers.net/api/?object=votes&element=claim&key={0}&steamid={1}");
+                    serviceName = service.Name;
 
-                if (service.Name.Contains("unturned-servers"))
-                {
-                    url = "https://unturned-servers.net/api/?action=post&object=votes&element=claim&key={0}&steamid={1}";
-                }
-                else if (service.Name.Contains("unturnedsl"))
-                {
-                    url = "http://unturnedsl.com/api/dedicated/post/{0}/{1}";
-                }
-                else if (service.Name.Contains("obs.erve.me") || service.Name.Contains("observatory"))
-                {
-                    url = "http://api.observatory.rocketmod.net/?server={0}&steamid={1}&claim";
-                }
-
-                try
-                {
-                    result = wc.DownloadString(string.Format(url, service.APIKey, player.CSteamID.m_SteamID));
-
-                    if (result.Length > 1 || result.Length < 1)
+                    if (voteResult == "2")
                     {
-                        Logger.LogError("an error has occurred, please report it!");
-                        break;
+                        continue;
+                    }
+                    break;
+                }
+                else if (service.Name == "unturnedsl")
+                {
+                    s = new Plugin.VoteRewardsConfig.Service(service.Name, service.APIKey);
+                    voteResult = GetVote(player, s, "http://unturnedsl.com/api/dedicated/{0}/{1}");
+                    serviceName = service.Name;
+
+                    if (voteResult == "2")
+                    {
+                        continue;
+                    }
+                    break;
+                }
+                else if (service.Name == "obs.erve.me" || service.Name == "observatory")
+                {
+                    s = new Plugin.VoteRewardsConfig.Service(service.Name, service.APIKey);
+                    voteResult = GetVote(player, s, "http://api.observatory.rocketmod.net/?server={0}&steamid={1}");
+                    serviceName = service.Name;
+
+                    if (voteResult == "2")
+                    {
+                        continue;
+                    }
+                    break;
+                }
+            }
+
+            if (voteResult == null && giveReward == true)
+            {
+                UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("failed_to_connect"), Color.red);
+            }
+            else
+            {
+                if (voteResult == "0") // Has not voted
+                {
+                    if (giveReward)
+                    {
+                        UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("not_yet_voted", serviceName), Color.red);
+                    }
+                    else
+                    {
+                        UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("not_yet_voted"));
                     }
                 }
-                catch (WebException)
+                else if (voteResult == "1") // Has voted & not claimed
                 {
-                    Logger.LogError("Could not connect to API");
-                    break;
+                    if (giveReward)
+                    {
+                        if (SetVote(player, s))
+                        {
+                            GiveReward(player, serviceName);
+                        }
+                        else
+                        {
+                            UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("failed_to_connect"), Color.red);
+                        }
+                    }
+                    else
+                    {
+                        UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("pending_reward"));
+                    }
+                }
+                else if (voteResult == "2") // Has voted & claimed
+                {
+                    if (giveReward)
+                    {
+                        UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("already_voted"), Color.red);
+                    }
                 }
             }
-
-            switch (result)
-            {
-                case "0": // Not claimed
-                    Logger.LogError("an error has occurred, please report it!");
-                    break;
-                case "1": // Claimed
-                    break;
-            }
         }
 
-        public static void HandleVote(UnturnedPlayer player)
-        {
-            Result voteResult = GetVote(player);
-
-            switch (voteResult.result)
-            {
-                case "0": // Hasn't voted
-                    UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("not_yet_voted", voteResult.service), Color.red);
-                    break;
-                case "1": // Has voted
-                    GiveReward(player, voteResult.service);
-                    SetVote(player);
-                    break;
-                case "2": // Has voted & claimed
-                    UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("already_voted", voteResult.service), Color.red);
-                    break;
-            }
-        }
-
-        public static void GiveItem(UnturnedPlayer player, Item item)
-        {
-            player.Inventory.tryAddItem(item, true, true);
-        }
-
-        public static void GiveReward(UnturnedPlayer player, string serviceName = null)
+        public static void GiveReward(UnturnedPlayer player, string serviceName)
         {
             int sum = Plugin.VoteRewardsPlugin.Instance.Configuration.Instance.Rewards.Sum(p => p.Chance);
             string selectedElement = null;
@@ -174,74 +227,72 @@ namespace Teyhota.VoteRewards
 
             if (selectedElement == null || value == null)
             {
-                Logger.LogError("an error has occurred, please report it!");
+                UnturnedChat.Say(player, "The admin hasn't setup rewards yet.", Color.red);
                 return;
             }
 
-            switch (selectedElement)
+            // Rewards
+            if (selectedElement == "item" || selectedElement == "i")
             {
-                case "item":
-                    {
-                        List<string> items = value.Split(',').ToList();
-                        foreach (string item in items)
-                        {
-                            ushort itemID = ushort.Parse(item);
-                            GiveItem(player, new Item(itemID, true));
-                        }
-                        UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("reward", "some items"));
-                    }
-                    break;
-                case "xp":
-                    {
-                        player.Experience += uint.Parse(value);
-                        UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("reward", value + " xp"));
-                    }
-                    break;
-                case "group":
-                    {
-                        R.Permissions.AddPlayerToGroup(value, player);
-                        R.Permissions.Reload();
+                List<string> items = value.Split(',').ToList();
+                foreach (string item in items)
+                {
+                    ushort itemID = ushort.Parse(item);
 
-                        UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("reward", value + " Permission Group"));
-                    }
-                    break;
-                case "uconomy":
+                    player.Inventory.tryAddItem(new Item(itemID, true), true);
+                }
+
+                UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("reward", "some items"));
+            }
+            else if (selectedElement == "xp" || selectedElement == "exp")
+            {
+                player.Experience += uint.Parse(value);
+
+                UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("reward", value + " xp"));
+            }
+            else if (selectedElement == "group" || selectedElement == "permission")
+            {
+                R.Permissions.AddPlayerToGroup(value, player);
+                R.Permissions.Reload();
+
+                UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("reward", value + " Permission Group"));
+            }
+            else if (selectedElement == "uconomy" || selectedElement == "money")
+            {
+                if (Plugin.VoteRewardsPlugin.Uconomy)
+                {
+                    RocketPlugin.ExecuteDependencyCode("Uconomy", (IRocketPlugin plugin) =>
                     {
-                        if (!Plugin.VoteRewardsPlugin.Uconomy)
-                        {
-                            Logger.LogError("you must install Uconomy first!");
-                            return;
-                        }
+                        Uconomy.Instance.Database.IncreaseBalance(player.CSteamID.ToString(), decimal.Parse(value));
 
-                        RocketPlugin.ExecuteDependencyCode("Uconomy", (IRocketPlugin plugin) =>
-                        {
-                            Uconomy.Instance.Database.IncreaseBalance(player.CSteamID.ToString(), decimal.Parse(value));
-
-                            UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("reward", value + " Uconomy " + Uconomy.Instance.Configuration.Instance.MoneyName + "s"));
-                        });
-                    }
-                    break;
-                case "slot":
+                        UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("reward", value + " Uconomy " + Uconomy.Instance.Configuration.Instance.MoneyName + "s"));
+                    });
+                }
+            }
+            else if (selectedElement == "slot" || selectedElement.Contains("customkit"))
+            {
+                if (Plugin.VoteRewardsPlugin.CustomKits)
+                {
+                    RocketPlugin.ExecuteDependencyCode("CustomKits", (IRocketPlugin plugin) =>
                     {
-                        if (!Plugin.VoteRewardsPlugin.CustomKits)
-                        {
-                            Logger.LogError("you must install CustomKits first!");
-                            return;
-                        }
+                        SlotManager.AddSlot(player, 1, int.Parse(value));
 
-                        RocketPlugin.ExecuteDependencyCode("CustomKits", (IRocketPlugin plugin) =>
-                        {
-                            SlotManager.AddSlot(player, 1, int.Parse(value));
-
-                            UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("reward", "a CustomKits slot with item limit of " + value ));
-                        });
-                    }
-                    break;
+                        UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("reward", "a CustomKits slot with item limit of " + value));
+                    });
+                }
             }
 
+            // Optional global announcement
             if (Plugin.VoteRewardsPlugin.Instance.Configuration.Instance.GlobalAnnouncement)
             {
-                UnturnedChat.Say(Plugin.VoteRewardsPlugin.Instance.Translate("broadcast_reward", player.CharacterName, serviceName));
+                foreach (SteamPlayer sP in Provider.clients)
+                {
+                    var p = sP.playerID.steamID;
+                    if (p != player.CSteamID)
+                    {
+                        ChatManager.say(p, Plugin.VoteRewardsPlugin.Instance.Translate("reward_announcement", player.CharacterName, serviceName), Color.green, EChatMode.GLOBAL);
+                    }
+                }
             }
         }
     }

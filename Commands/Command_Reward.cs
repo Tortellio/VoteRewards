@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using Rocket.Unturned.Player;
 using Rocket.Unturned.Chat;
@@ -30,7 +31,7 @@ namespace Teyhota.VoteRewards.Commands
                     return;
                 }
 
-                VoteRewards.HandleVote((UnturnedPlayer)caller);
+                VoteRewards.HandleVote((UnturnedPlayer)caller, true);
             }
             else
             {
@@ -40,7 +41,7 @@ namespace Teyhota.VoteRewards.Commands
 
                     if (toPlayer != null)
                     {
-                        VoteRewards.GiveReward(toPlayer);
+                        VoteRewards.GiveReward(toPlayer, Plugin.VoteRewardsPlugin.Instance.Configuration.Instance.Services.FirstOrDefault().Name);
 
                         if (caller is ConsolePlayer)
                         {

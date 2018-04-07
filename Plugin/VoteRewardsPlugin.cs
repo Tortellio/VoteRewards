@@ -4,7 +4,6 @@ using System.Net;
 using System.Xml;
 using Rocket.Core.Plugins;
 using Rocket.Unturned.Player;
-using Rocket.Unturned.Chat;
 using Rocket.Unturned;
 using Rocket.API.Collections;
 using Logger = Rocket.Core.Logging.Logger;
@@ -14,14 +13,14 @@ namespace Teyhota.VoteRewards.Plugin
     public class VoteRewardsPlugin : RocketPlugin<VoteRewardsConfig>
     {
         public static string PluginName = "VoteRewards";
-        public static string PluginVersion = "3.0.0";
-        public static string BuildVersion = "16";
+        public static string PluginVersion = "3.0.1";
+        public static string BuildVersion = "38";
         public static string RocketVersion = "4.9.3.0";
-        public static string UnturnedVersion = "3.23.5.0";
+        public static string UnturnedVersion = "3.23.8.0";
         public static string ThisDirectory = System.IO.Directory.GetCurrentDirectory() + @"\Plugins\VoteRewards\";
 
-        public static bool CustomKits;
-        public static bool Uconomy;
+        public static bool CustomKits = false;
+        public static bool Uconomy = false;
         public static VoteRewardsPlugin Instance;
 
         public static void Write(string message)
@@ -123,7 +122,7 @@ namespace Teyhota.VoteRewards.Plugin
                 Logger.LogError("The update has failed to download\n");
             }
         }
-        
+
         protected override void Load()
         {
             Instance = this;
@@ -145,31 +144,33 @@ namespace Teyhota.VoteRewards.Plugin
                 CustomKits = true;
                 Logger.Log("Optional dependency CustomKits has been detected\n", ConsoleColor.Gray);
             }
-            else
-            {
-                CustomKits = false;
-            }
 
             if (File.Exists(System.IO.Directory.GetCurrentDirectory() + @"\Plugins\Uconomy.dll"))
             {
                 Uconomy = true;
                 Logger.Log("Optional dependency Uconomy has been detected\n", ConsoleColor.Gray);
             }
-            else
+
+            if (Configuration.Instance.Rewards.Count == 0)
             {
-                Uconomy = false;
+                Logger.LogError("VoteRewards >> No reward bundles found\n");
+            }
+
+            foreach (var service in Configuration.Instance.Services)
+            {
+                if (service.APIKey.Length == 0)
+                {
+                    Logger.LogError("VoteRewards >> API key(s) not found\n");
+                    break;
+                }
             }
         }
-        
-        private void OnPlayerConnected(UnturnedPlayer player)
+
+        public void OnPlayerConnected(UnturnedPlayer player)
         {
-            VoteRewards.Result voteResult = VoteRewards.GetVote(player);
-            
-            switch (voteResult.result)
+            if (Configuration.Instance.AlertOnJoin)
             {
-                case "1": // Has voted & not claimed
-                    UnturnedChat.Say(player, Translate("pending_reward", voteResult.service));
-                    break;
+                VoteRewards.HandleVote(player, false);
             }
         }
 
@@ -187,12 +188,13 @@ namespace Teyhota.VoteRewards.Plugin
                 return new TranslationList()
                 {
                     {"vote_page_msg", "Vote for {0} and receive a random reward!"},
-                    {"already_voted", "You have already voted on {0} in the last 24 hours."},
+                    {"already_voted", "You have already voted in the last 24 hours."},
                     {"not_yet_voted", "You have not yet voted for this server on {0}. Type /vote"},
-                    {"pending_reward", "You have a pending reward for your vote on {0}! Type /reward"},
+                    {"pending_reward", "You have a pending reward for your vote! Type /reward"},
                     {"free_reward", "You gave {0} a free reward!"},
                     {"reward", "You've been rewarded {0}. Thanks for voting!"},
-                    {"broadcast_reward", "{0} voted on {1} and has received a reward! Vote now!"}
+                    {"reward_announcement", "{0} voted on {1} and has received a reward! Vote now!"},
+                    {"failed_to_connect", "Failed to connect, please try again later..."}
                 };
             }
         }
