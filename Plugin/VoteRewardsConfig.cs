@@ -52,6 +52,7 @@ namespace Teyhota.VoteRewards.Plugin
         public void LoadDefaults()
         {
             Instance = this;
+            DisableAutoUpdate = "true";
             VotePageURL = "https://unturned-servers.net/my_server_vote_page";
             AlertOnJoin = true;
             GlobalAnnouncement = true;

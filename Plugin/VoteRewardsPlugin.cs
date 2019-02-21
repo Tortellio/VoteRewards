@@ -13,10 +13,10 @@ namespace Teyhota.VoteRewards.Plugin
     public class VoteRewardsPlugin : RocketPlugin<VoteRewardsConfig>
     {
         public static string PluginName = "VoteRewards";
-        public static string PluginVersion = "3.0.1";
-        public static string BuildVersion = "40";
+        public static string PluginVersion = "3.0.2";
+        public static string BuildVersion = "41";
         public static string RocketVersion = "4.9.3.0";
-        public static string UnturnedVersion = "3.23.8.0";
+        public static string UnturnedVersion = "3.28.0.0";
         public static string ThisDirectory = System.IO.Directory.GetCurrentDirectory() + @"\Plugins\VoteRewards\";
 
         public static bool CustomKits = false;
@@ -187,7 +187,7 @@ namespace Teyhota.VoteRewards.Plugin
             {
                 return new TranslationList()
                 {
-                    {"vote_page_msg", "Vote for {0} and receive a random reward!"},
+                    {"vote_page_msg", "Vote for us and receive a random reward!"},
                     {"already_voted", "You have already voted in the last 24 hours."},
                     {"not_yet_voted", "You have not yet voted for this server on {0}. Type /vote"},
                     {"pending_reward", "You have a pending reward for your vote! Type /reward"},

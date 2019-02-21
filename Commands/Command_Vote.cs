@@ -26,16 +26,8 @@ namespace Teyhota.VoteRewards.Commands
         {
             UnturnedPlayer player = (UnturnedPlayer)caller;
             string url = Plugin.VoteRewardsPlugin.Instance.Configuration.Instance.VotePageURL;
-
-            try
-            {
-                SteamFriends.ActivateGameOverlayToWebPage(url);
-            }
-            catch
-            {
-                UnturnedChat.Say(caller, Plugin.VoteRewardsPlugin.Instance.Translate("vote_page_msg", Provider.serverName));
-                Process.Start(url);
-            }
+            
+            player.Player.sendBrowserRequest(Plugin.VoteRewardsPlugin.Instance.Translate("vote_page_msg", Provider.serverName), url);
         }
     }
 }

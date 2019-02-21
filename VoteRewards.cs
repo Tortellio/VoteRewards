@@ -6,7 +6,7 @@ using Rocket.Unturned.Chat;
 using Rocket.Core.Plugins;
 using Rocket.Core;
 using Rocket.API;
-using SDG.Unturned;
+using SDG.Unturned; 
 using UnityEngine;
 using fr34kyn01535.Uconomy;
 using Teyhota.CustomKits;
@@ -21,8 +21,10 @@ namespace Teyhota.VoteRewards
             WebClient wc = new WebClient();
             string result = null;
 
-            if (service.APIKey == null)
+            if (service.APIKey == null || service.APIKey.Length == 0)
             {
+                Logger.LogError("\nVoteRewards >> API key(s) not found\n");
+
                 return null;
             }
 
@@ -33,7 +35,7 @@ namespace Teyhota.VoteRewards
             catch (WebException)
             {
                 Logger.LogError(string.Format("\nVoteRewards >> Could not connect to {0}'s API\n", service.Name));
-
+            
                 return null;
             }
 
@@ -78,7 +80,7 @@ namespace Teyhota.VoteRewards
                 url = "http://api.observatory.rocketmod.net/?server={0}&steamid={1}&claim";
             }
 
-            if (service.APIKey == null || url == null)
+            if (service.APIKey == null || service.APIKey.Length == 0 || url == null)
             {
                 return false;
             }
@@ -123,6 +125,11 @@ namespace Teyhota.VoteRewards
             {
                 if (service.Name == "unturned-servers")
                 {
+                    if (service.APIKey == null || service.APIKey.Length == 0)
+                    {
+                        continue;
+                    }
+
                     s = new Plugin.VoteRewardsConfig.Service(service.Name, service.APIKey);
                     voteResult = GetVote(player, s, "http://unturned-servers.net/api/?object=votes&element=claim&key={0}&steamid={1}");
                     serviceName = service.Name;
@@ -135,6 +142,11 @@ namespace Teyhota.VoteRewards
                 }
                 else if (service.Name == "unturnedsl")
                 {
+                    if (service.APIKey == null || service.APIKey.Length == 0)
+                    {
+                        continue;
+                    }
+
                     s = new Plugin.VoteRewardsConfig.Service(service.Name, service.APIKey);
                     voteResult = GetVote(player, s, "http://unturnedsl.com/api/dedicated/{0}/{1}");
                     serviceName = service.Name;
@@ -147,6 +159,12 @@ namespace Teyhota.VoteRewards
                 }
                 else if (service.Name == "obs.erve.me" || service.Name == "observatory")
                 {
+
+                    if (service.APIKey == null || service.APIKey.Length == 0)
+                    {
+                        continue;
+                    }
+
                     s = new Plugin.VoteRewardsConfig.Service(service.Name, service.APIKey);
                     voteResult = GetVote(player, s, "http://api.observatory.rocketmod.net/?server={0}&steamid={1}");
                     serviceName = service.Name;
@@ -167,14 +185,7 @@ namespace Teyhota.VoteRewards
             {
                 if (voteResult == "0") // Has not voted
                 {
-                    if (giveReward)
-                    {
-                        UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("not_yet_voted", serviceName), Color.red);
-                    }
-                    else
-                    {
-                        UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("not_yet_voted"));
-                    }
+                    UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("not_yet_voted", serviceName), Color.red);
                 }
                 else if (voteResult == "1") // Has voted & not claimed
                 {
