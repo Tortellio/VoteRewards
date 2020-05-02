@@ -1,0 +1,4 @@
+D:\PROGRAMMING\Games\Unturned\Plugins\Rocketmod\VoteRewards\bin\Release\VoteRewards.dll
+D:\PROGRAMMING\Games\Unturned\Plugins\Rocketmod\VoteRewards\bin\Release\VoteRewards.pdb
+D:\PROGRAMMING\Games\Unturned\Plugins\Rocketmod\VoteRewards\obj\Release\VoteRewards.dll
+D:\PROGRAMMING\Games\Unturned\Plugins\Rocketmod\VoteRewards\obj\Release\VoteRewards.pdb

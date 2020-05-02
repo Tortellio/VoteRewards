@@ -286,7 +286,7 @@ namespace Teyhota.VoteRewards
                 {
                     RocketPlugin.ExecuteDependencyCode("CustomKits", (IRocketPlugin plugin) =>
                     {
-                        SlotManager.AddSlot(player, 1, int.Parse(value));
+                        SlotManager.AddSlot(player, 1, ushort.Parse(value));
 
                         UnturnedChat.Say(player, Plugin.VoteRewardsPlugin.Instance.Translate("reward", "a CustomKits slot with item limit of " + value));
                     });
