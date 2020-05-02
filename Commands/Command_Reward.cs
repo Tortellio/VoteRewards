@@ -49,7 +49,7 @@ namespace Teyhota.VoteRewards.Commands
                         }
                         else
                         {
-                            UnturnedChat.Say(caller, Plugin.VoteRewardsPlugin.Instance.Translate("free_reward", toPlayer.CharacterName));
+                            UnturnedChat.Say(caller, Plugin.VoteRewardsPlugin.Instance.Translate("free_reward", toPlayer.CharacterName), "https://i.imgur.com/IYONga6.png");
                         }
                     }
                 }

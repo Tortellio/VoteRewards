@@ -16,7 +16,7 @@ namespace Teyhota.VoteRewards.Plugin
         public static string PluginVersion = "3.0.2";
         public static string BuildVersion = "41";
         public static string RocketVersion = "4.9.3.0";
-        public static string UnturnedVersion = "3.28.0.0";
+        public static string UnturnedVersion = "3.20.2.0";
         public static string ThisDirectory = System.IO.Directory.GetCurrentDirectory() + @"\Plugins\VoteRewards\";
 
         public static bool CustomKits = false;
@@ -193,7 +193,7 @@ namespace Teyhota.VoteRewards.Plugin
                     {"pending_reward", "You have a pending reward for your vote! Type /reward"},
                     {"free_reward", "You gave {0} a free reward!"},
                     {"reward", "You've been rewarded {0}. Thanks for voting!"},
-                    {"reward_announcement", "{0} voted on {1} and has received a reward! Vote now!"},
+                    {"reward_announcement", "{0} voted on {1} and has received {2}! Vote now!"},
                     {"failed_to_connect", "Failed to connect, please try again later..."}
                 };
             }

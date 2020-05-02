@@ -10,6 +10,9 @@ namespace Teyhota.VoteRewards.Plugin
 
         public string DisableAutoUpdate;
         public string VotePageURL;
+        public string VoteIconURL;
+        public string RewardIconURL;
+        public string NoticeIconURL;
         public bool AlertOnJoin;
         public bool GlobalAnnouncement;
         public List<Reward> Rewards;
@@ -19,13 +22,16 @@ namespace Teyhota.VoteRewards.Plugin
         {
             public Reward() { }
 
-            internal Reward(string type, string value, short chance)
+            internal Reward(string name, string type, string value, short chance)
             {
+                Name = name;
                 Type = type;
                 Value = value;
                 Chance = chance;
             }
 
+            [XmlAttribute]
+            public string Name;
             [XmlAttribute]
             public string Type;
             [XmlAttribute]
@@ -54,19 +60,21 @@ namespace Teyhota.VoteRewards.Plugin
             Instance = this;
             DisableAutoUpdate = "true";
             VotePageURL = "https://unturned-servers.net/my_server_vote_page";
+            VoteIconURL = "https://i.imgur.com/E8g86Mu.png";
+            RewardIconURL = "https://i.imgur.com/IYONga6.png";
+            NoticeIconURL = "https://i.imgur.com/FeIvao9.png";
             AlertOnJoin = true;
             GlobalAnnouncement = true;
             Rewards = new List<Reward>()
             {
-                new Reward("item", "235,236,237,238,253,1369,1371,1371,297,298,298,298,15,15,15,15,15", 40),
-                new Reward("xp", "1400", 50),
-                new Reward("group", "VIP", 10)
+                new Reward("name","item", "235,236,237,238,253,1369,1371,1371,297,298,298,298,15,15,15,15,15", 40),
+                new Reward("name","xp", "1400", 50),
+                new Reward("name","group", "VIP", 10)
             };
             Services = new List<Service>()
             {
                 new Service("unturned-servers", ""),
-                new Service("unturnedsl", ""),
-                new Service("obs.erve.me", "")
+                new Service("unturnedsl", "")
             };
         }
     }
